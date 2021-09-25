@@ -13,10 +13,21 @@ class DriverAction(Action):
 def create_parser():
     parser = ArgumentParser()
     parser.add_argument('url', help='URL of the PostgreSQL database to backup')
-    parser.add_argument('--driver',
+    parser.add_argument('--driver', '-d',
             help="how & where to store the backup",
             nargs=2,
             action=DriverAction,
+            metavar=('driver', 'destination'),
             required=True
             )
     return parser
+
+def main():
+    from pgbackup import pgdump, storage
+
+    args = create_parser().parse_args()
+    dump = pgdump.dump(args.url)
+    if args.driver == 'local':
+        outfile = open(args.destination, 'wb')
+        print(f"Backing database up locally to {args.destination}")
+        storage.local(dump.stdout, outfile)
